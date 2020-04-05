@@ -1,0 +1,3 @@
+Gradients does not exist for variables ['block_net/embeddings_layer/word_p/embeddings:0'] when minimizing the loss.
+Gradients does not exist for variables ['block_net/embeddings_layer/word_p/embeddings:0'] when minimizing the loss.
+Gradients does not exist for variables ['block_net/embeddings_layer/word_p/embeddings:0'] when minimizing the loss.
