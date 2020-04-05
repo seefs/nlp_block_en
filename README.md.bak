@@ -39,16 +39,16 @@ python run_block.py
 ### 2.2.Training (available)
 ```
 1) Only show parameters, no training
-python runtest_all\runtest_model_calc.py --mean=mean
+python_w runtest_all\runtest_model_calc.py --mean=mean
 
 2) 10 steps of training, can run on ordinary computer  
-python runtest_all\runtest_model_calc.py --train=true --test=false --mean=mean --batch_size=40 --training_steps=10
+python_w runtest_all\runtest_model_calc.py --train=true --test=false --mean=mean --batch_size=40 --training_steps=10
 
 3) 10 steps of training, in order to maintain the maximum value of f1, change the index to max_mean; it seems not to converge  
-python runtest_all\runtest_model_calc.py --train=true --test=false --mean=max_mean --batch_size=40 --training_steps=10 --learning_rate=5e-5
+python_w runtest_all\runtest_model_calc.py --train=true --test=false --mean=max_mean --batch_size=40 --training_steps=10 --learning_rate=5e-5
 
 4) 60 steps of training
-python runtest_all\runtest_model_calc.py --train=true --test=false --mean=mean --batch_size=120 --training_steps=30 --start_check_step=10 --learning_rate=2e-5
+python_w runtest_all\runtest_model_calc.py --train=true --test=false --mean=mean --batch_size=120 --training_steps=30 --start_check_step=10 --learning_rate=2e-5
 ```
 * Operation result: [view large image](/images/screenshot/train/train2.jpg)<br>
 ![train1](/images/screenshot/train/train1.jpg)
@@ -56,19 +56,19 @@ python runtest_all\runtest_model_calc.py --train=true --test=false --mean=mean -
 ### 2.3. Forecast (available)
 ```
 1) Mixed index (max_mean), dual index is better
-python runtest_all\runtest_model.py --train=true --test=false --mean=max_mean
+python_w runtest_all\runtest_model.py --train=true --test=false --mean=max_mean
 
 2) Single indicator (mean)
-python runtest_all\runtest_model.py --train=true --test=false --mean=mean
+python_w runtest_all\runtest_model.py --train=true --test=false --mean=mean
 
 3) Single index (max)
-python runtest_all\runtest_model.py --train=true --test=false --mean=max
+python_w runtest_all\runtest_model.py --train=true --test=false --mean=max
 
 4) Output intermediate data (slightly slow, used for debugging the best ordinal number, see 3.1)
-python runtest_all\runtest_model.py --train=true --test=false --mean=max_mean --save_np_data=true
+python_w runtest_all\runtest_model.py --train=true --test=false --mean=max_mean --save_np_data=true
 
 5) Remove hidden mode (add_hide_seq)
-python runtest_all\runtest_model.py --train=true --test=false --mean=max_mean --add_hide_seq=false
+python_w runtest_all\runtest_model.py --train=true --test=false --mean=max_mean --add_hide_seq=false
 
 ```
 
@@ -96,28 +96,28 @@ python runtest_all\runtest_model.py --train=true --test=false --mean=max_mean --
 
 ```
 1) Display basic parameters
-python runtest_all\runtest_param.py --data_file=brd_sum --sub_model_path=
+python_w runtest_all\runtest_param.py --data_file=brd_sum --sub_model_path=
 
 2) Check the data before p = 0.49 ~ 0.501 to see if the prediction is accurate, this section is more difficult to control
-python runtest_all\runtest_param.py --data_file=brd_sum --sub_model_path= --test_type=mid_range
+python_w runtest_all\runtest_param.py --data_file=brd_sum --sub_model_path= --test_type=mid_range
 
 3) After updating the above two sets of coefficients and baseline, calculate the best baseline
-python runtest_all\runtest_param.py --data_file=brd_sum --sub_model_path= --test_type=max_base
+python_w runtest_all\runtest_param.py --data_file=brd_sum --sub_model_path= --test_type=max_base
 
 4) After fixing the max group coefficient, reconfirm the best coefficient (a bit slow)
   bit = 0 ~ 16, determine the coefficient separately in 17 times
-python runtest_all\runtest_param.py --data_file=brd_sum --sub_model_path= --test_type=max_coefficient --bit=2
+python_w runtest_all\runtest_param.py --data_file=brd_sum --sub_model_path= --test_type=max_coefficient --bit=2
 
 5) After fixing the mean group coefficient, reconfirm the best coefficient (a bit slow)
   bit = 0 ~ 16, determine the coefficient separately in 17 times
-python runtest_all\runtest_param.py --data_file=brd_sum --sub_model_path= --test_type=mean_coefficient --bit=9
+python_w runtest_all\runtest_param.py --data_file=brd_sum --sub_model_path= --test_type=mean_coefficient --bit=9
 
 6) Display the final mixed indicator
-python runtest_all\runtest_param.py --data_file=brd_sum --sub_model_path= --test_type=merge_show
+python_w runtest_all\runtest_param.py --data_file=brd_sum --sub_model_path= --test_type=merge_show
 
 7) Mixed indicators, reconfirm the best range parameters:
   bit = 0 ~ 9, and manually comment out the corresponding line of the range array (partB) (duplicates the range corresponding to bit)
-python runtest_all\runtest_param.py --data_file=brd_sum --sub_model_path= --test_type=merge_coefficient
+python_w runtest_all\runtest_param.py --data_file=brd_sum --sub_model_path= --test_type=merge_coefficient
 ```
 
 ### 3.2 Parameter mixing
@@ -133,7 +133,7 @@ python runtest_all\runtest_merge.py
 
 ```
 1) Check whether the length is equal (when the preprocessing error, output the length of each data)
-python runtest\runtest_load.py	--test_type=data_length_check
+python_w runtest\runtest_load.py	--test_type=data_length_check
 
 2) Length of intercepted data
 # Positive example 100, negative example 100, a total of 200
@@ -146,7 +146,7 @@ python runtest\runtest_load.py	--test_type=data_take_out --tcnt=500 --fcnt=500 -
 python runtest\runtest_load.py	--test_type=data_take_out --tcnt=999 --fcnt=999 --allcnt=200
 
 3) Save the word segmentation process
-python runtest\runtest_load.py	--test_type=save_tokens
+python_w runtest\runtest_load.py	--test_type=save_tokens
 ```
 
 * View intercepted data:  
@@ -160,10 +160,10 @@ data\csv\redata_1_to_200\train_xxx.csv
 
 ```
 1) Coding-> Fill hidden part of speech
-python runtest\runtest_seq.py  --test_type=m2n
+python_w runtest\runtest_seq.py  --test_type=m2n
 
 2) Words-> Coding-> Fill hidden parts of speech
-python runtest\runtest_seq.py  --test_type=tokens_parsing
+python_w runtest\runtest_seq.py  --test_type=tokens_parsing
 ```
 * Operation result: [view large image](/images/screenshot/long/3.4.1_tokens_parsing.jpg)<br>
 ![train1](/images/screenshot/short/3.4.1_tokens_parsing.jpg)
