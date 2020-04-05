@@ -13,7 +13,7 @@ import re
 #
 
 def get_category_from_db(unique_list, db_path=None):
-# 从数据库获取词性
+# Get part of speech from the database
     number_list = []
     
     sqlite3_conn = sqlite3.connect(db_path)
@@ -40,8 +40,8 @@ def get_category_from_db(unique_list, db_path=None):
     return number_list
     
 def connect_content_from_db(concat_list, db_path=None):
-# 从数据库获取词性
-# 微调:多义词+两len(1)连接+名词len(1)向前连接
+# Get part of speech from the database
+# Fine-tuning: polysemy + two len (1) connection + noun len (1) forward connection
     out_list = concat_list.copy()
     cate17_list = []
     sqlite3_conn = sqlite3.connect(db_path)
@@ -55,7 +55,7 @@ def connect_content_from_db(concat_list, db_path=None):
             if len(unique_str)>1:
                 continue
             is_valid = 1
-            ### 将len(1)与len(1), 连续2项以上合并起来
+            ### Combine len (1) and len (1), two or more consecutive items
             for j in range(i+1, len(concat_list)):
                 if len(concat_list[j][0])>1:
                     break
@@ -64,18 +64,18 @@ def connect_content_from_db(concat_list, db_path=None):
                 results = sqlite3_cursor.fetchall()
                 for row in results:
                     dcxn = row[0]
-                    ### 合并时累计长度变化
+                    ### Change in cumulative length during merge
                     out_list[i-merge_cnt:j+1-merge_cnt]=[[unique_str, dcxn]]
                     is_valid = 0
                     merge_cnt = merge_cnt + 1
                     break
                 if is_valid == 0:
                     break
-        ### 反向简单取一次, 词类改错
-        ###   重新连接被拆开的len(1)名词
+        ### The reverse is simply taken once, the part of speech is changed
+        ###    Reconnect the len (1) noun that was disassembled
         concat_list = out_list.copy()
         for i in range(len(concat_list)-1,0,-1):
-            # i=len-1~1, 不包括0
+            # i=len-1~1, Does not include 0
             unique_str = concat_list[i][0]
             if len(unique_str)>1:
                 continue
@@ -109,7 +109,7 @@ def connect_content_from_db(concat_list, db_path=None):
             if is_valid == 1:
                 dcxn = out_list[i-1][1]
                 out_list[i-1:i]=[[pre_str, dcxn]]
-        ### 获取多义词列表
+        ### Get a list of polysemous words
         for i in range(len(out_list)):
             unique_str = out_list[i][0]
             sqlite3_cursor.execute(sql_cx % (str(unique_str)))
@@ -133,10 +133,10 @@ def connect_content_from_db(concat_list, db_path=None):
     return out_list
     
 def get_cate17_best_category(in_list, cate17_str_list):
-# 多义--选择词性:
-#   cx=17: 表示多义
-#   为方便处理, 只处理单个词情况
-#   连续多义情况未考虑
+# Polysemy--choose part of speech:
+#    cx = 17: indicates polysemy
+#    For ease of processing, only deal with single word
+#    Continuous ambiguity is not considered
     cate17_list = [get_cate17_list(i) for i in cate17_str_list]
     cate17_i = 0
         
@@ -163,9 +163,9 @@ def get_cate17_best_category(in_list, cate17_str_list):
 
 
 def get_cate17_pipei(a, b):
-# 多义--判断哪个词性更合适:
-#   与前后匹配, 为了方便, 只设置少量值
-#   默认0.5, 凭感觉设置比0.5大或小
+# Polysemy-determine which part of speech is more appropriate:
+#    Match before and after, for convenience, only set a few values
+#    Default 0.5, set larger or smaller than 0.5 according to feeling
     code_dict = {
                   '1_3':0.8,
                   '1_6':0.2,
@@ -190,8 +190,8 @@ def get_cate17_pipei(a, b):
     return code_dict.get(cate17_key, 0.5)
 
 def get_cate17_list(cate17_str):
-# 多义--词性列表--拆分字符串:
-#   格式("cx:4,5")
+# Polysemy-part-of-speech list-split string:
+#    Format ("cx: 4,5")
     searchObj = re.search( r'cx:([0-9,]{1,})', cate17_str)
     cate17_list = []
     if searchObj:
@@ -201,10 +201,10 @@ def get_cate17_list(cate17_str):
 
 
 def get_cate17_best_cx(in_list, cate17_str_list):
-# 多义--选择词性:
-#   cx=17: 表示多义
-#   为方便处理, 只处理单个词情况
-#   连续多义情况未考虑
+# Polysemy--choose part of speech:
+#    cx = 17: indicates polysemy
+#    For ease of processing, only deal with single word
+#    Continuous ambiguity is not considered
     cate17_list = [get_cate17_list(i) for i in cate17_str_list]
     cate17_i = 0
     cate17_len = len(cate17_list)
@@ -246,9 +246,9 @@ def get_cate17_best_cx(in_list, cate17_str_list):
 
 
 def get_single_code_from_db(unique_list, db_path=None):
-# 单字模式:
-#   按下标顺序分隔
-#   为代码简单, 只处理常用
+# Word mode:
+#    Separated by subscript order
+#    For the code is simple, only handle common
     index_dict = { 1:[[1]],
                    2:[[1,1]], 
                    3:[[2,1],[1,2],[1,1,1]],
@@ -268,27 +268,27 @@ def get_single_code_from_db(unique_list, db_path=None):
     
     try:
         for tmp_str in unique_list:
-            # 获取字数, 按下标顺序分隔
+            # Get word count, separated by subscript order
             str_len = len(tmp_str)
             index_list = index_dict.get(str_len, 0)
             if 0 == index_list:
-                # 7字以上为空, 即不替换
+                # 7 words or more is empty, that is, no replacement
                 out_code_list.append([])
                 out_unique_list.append([tmp_str])
                 continue
             
-            # 所有列表都不合适, 同样为空
+            # All lists are inappropriate, also empty
             is_all_valid = 0
             for tmp_index_list in index_list:
                 # Number of subscripts --> determine whether it is a single word
                 index_len = len(tmp_index_list)
                 cx_list,str_list = [],[]
-                # 子列表任意合适即可
+                # Any suitable sublist
                 is_valid = 1
                 index_start = 0
                 for tmp_index in tmp_index_list:
                     word_str = tmp_str[index_start:index_start+tmp_index]
-                    # 查找词性+备注, 备注如:多义词词性列表
+                    # Find part of speech + remarks, such as a list of part of speech
                     sqlite3_cursor.execute(sql_cx % (str(word_str)))
                     dcxn = 27
 
@@ -301,7 +301,7 @@ def get_single_code_from_db(unique_list, db_path=None):
                         cx_list.append(dcxn)
                         str_list.append(word_str)
                     elif dcxn == 17:
-                        # cx=17:多义, 只处理前后2个词情况
+                        # cx=17:Polysemy, only deal with the two words before and after
                         if index_len <= 2:
                             cx_list.append(dcxn)
                             str_list.append(word_str)
@@ -321,7 +321,7 @@ def get_single_code_from_db(unique_list, db_path=None):
             if 0 == is_all_valid:
                 out_code_list.append([0])
                 out_unique_list.append([tmp_str])
-        # 17:多义, 选择合适词性
+        # 17:Polysemy, choose appropriate part of speech
         if len(cate17_list)>0:
             out_code_list = get_cate17_best_cx(out_code_list, cate17_list)
     except:
@@ -334,9 +334,9 @@ def get_single_code_from_db(unique_list, db_path=None):
 
     
 def merge_single_code(unique_list, detail_word_list, number_list, cx_list):
-# 单字模式:
-#   词性选择, 只选择常用的替换, 多义等
-#   0=0, 可能是错误字, 不考虑
+# Word mode:
+#    Part-of-speech selection, only select commonly used replacements, polysemy, etc.
+#    0 = 0, may be wrong words, don't consider
     split_set = { 
                   #'3=3+12',
                   '3=3+16',
@@ -366,17 +366,17 @@ def merge_single_code(unique_list, detail_word_list, number_list, cx_list):
     out_word_list = []
     for (old_word, new_word_list, tmp_number, tmp_cx_list) in zip(unique_list, detail_word_list, number_list, cx_list):
         #print ("--for  %s, %s" % (tmp_number, tmp_cx_list) )
-# 类型num换成类型list:
-#   用高层cx替换低层cx中的0
+# Replace type num with type list:
+#    Replace 0 in low-level cx with high-level cx
         if int(tmp_number)<17:
             tmp_cx_list = [i if i!=0 else tmp_number for i in tmp_cx_list]
         tmp_cx_list = [str(i) for i in tmp_cx_list]
         split_key = str(tmp_number) + "=" + '+'.join(tmp_cx_list)
         replace_key = '+'.join(tmp_cx_list)
         #print ("  --split_key  %s" % (split_key) )
-# 在set集合中, 替换
-# 多义, 替换
-# 未知0类, 替换
+# In the set collection, replace
+# Ambiguous, replace
+# Unknown category 0, replace
         if split_key in split_set:
             out_code_list.append(tmp_cx_list)
             out_word_list.append(old_word)
@@ -385,41 +385,41 @@ def merge_single_code(unique_list, detail_word_list, number_list, cx_list):
             out_word_list.append(old_word)
         elif (int(tmp_number) == 0 or int(tmp_number) == 26) and len(tmp_cx_list)>0:
             if len(old_word)>2 or replace_key not in replace_set:
-                # 拆分未知类
+                # Split unknown class
                 out_code_list.extend([[i] for i in tmp_cx_list])
                 out_word_list.extend(new_word_list)
             else:
-                # 少数常用语不拆开
+                # A few common words do not disassemble
                 out_code_list.append(tmp_cx_list)
                 out_word_list.append(old_word)
         else:
             out_code_list.append([tmp_number])
             out_word_list.append(old_word)
 ##############################################################
-# 测试时打开注释: 显示未添加的替换, 然后手动添加常用的到set集合中
+# Open the comment during the test: display the unadded replacements, and then manually add commonly used ones to the set collection
 #            if len(tmp_cx_list) > 0:
 #                print ("split_key", split_key)
     return out_word_list,out_code_list
     
     
-# 连接顺序:
-#flag_0 = 0  # 不连
-flag_1 = 1  # 近义连接(如'123','东西')
+# Connection sequence:
+#flag_0 = 0  #Not even
+flag_1 = 1  # Synonymous connections (such as '123', 'thing')
 #           # 
-flag_2 = 2  # 主从连接(如'我儿','一个'), 名位连接(如'水中')------类型2/3没区别
+flag_2 = 2  # Master-slave connection (such as 'My Child', 'One'), name connection (such as 'Underwater')-Type 2/3 makes no difference
 flag_3 = 3  # 
-flag_4 = 4  # 动动连接(如'满足开通'), 名名连接(如'李村'), 动补连接(如'喷完','喷出')---------比较长的词不连接
+flag_4 = 4  # Dynamic connection (such as 'satisfaction opening'), name connection (such as 'Li Village'), dynamic supplementary connection (such as 'spray finished', 'spray out') --------- Longer words Not connected
 #           # 
-flag_5 = 5  # 逻辑连接(如'的','用','如果'), 补动连接(如'每天做'), 副名连接(如'没人')
+flag_5 = 5  # Logical connection (such as 'the', 'use', 'if'), supplementary connection (such as 'do every day'), vice name connection (such as 'nobody')
 #           # 
-flag_6 = 6  # 浅知连接, 模块间连接, (如'箱'), 动名连接(如'喝水')
+flag_6 = 6  # A brief knowledge of connections, connections between modules, (such as 'box'), dynamic connection (such as 'drinking water')
 #           # 
-flag_7 = 7  # 数据连接, 名动连接(如'你去')
+flag_7 = 7  # Data connection, famous connection (such as 'you go')
 #           # 
 flag_8 = 8  # 
 #           # 
 
-# 连接顺序:
+# Connection sequence:
 #--block:---- -----1-1- ----------- --------1-- --1--------
 #--block:---- -----2--- ----------- ----2-2-2-- -----------
 #--block:---- ---3-3--- ----------- --3-3------ -----------
@@ -452,10 +452,10 @@ flag_list = [ [1,4,7,0,   0,0,0,4,    4,5,5,0,    0,0,0,4],   #1,
 			]
 
 def choose_connect_flag(code_list):
-# 单字/长词/逻辑/浅知模式:
-#   词性-->词是否连接
-#   按顺序从浅到深
-#   词连接后, code变短, 需要更新连接列表
+# Word / Long Word / Logic / Knowledge Mode:
+#    Part of speech-> Whether words are connected
+#    In order from light to dark
+#    After the words are connected, the code becomes shorter and the connection list needs to be updated
 
 # rank2->rank1
     c_list = []
@@ -475,9 +475,9 @@ def choose_connect_flag(code_list):
             flag = 1
             tmp_list.append(flag)
         else:
-            # 标点为0
+            # Punctuation is 0
             tmp_list.append(0)
-    # 末尾补0(两两连接, 少一位)
+    # Add 0 at the end (connect two by two, one less)
     tmp_list.append(0)
     
 # rank1->rank2
@@ -491,8 +491,8 @@ def choose_connect_flag(code_list):
     return out_list
 
 def connect_content_from_flag(concat_list, code_list, level):
-# 单字/长词/逻辑/浅知模式:
-#   处理连接
+# Word / Long Word / Logic / Knowledge Mode:
+#    Handling connections
     out_list = []
     sub_out_list = []
     for i,(tmp_mode_list, codes) in enumerate(zip(concat_list, code_list)):
@@ -510,38 +510,38 @@ def connect_content_from_flag(concat_list, code_list, level):
 
         flag = new_flag[-1]
         if level == 1:
-            # 单字模式
+            # Word mode
             sub_out_list.extend(new_codes)
             if flag != flag_1:
                 out_list.append(sub_out_list)
                 sub_out_list = []
         elif level == 2:
-            # 长词模式
+            # Long Word Mode
             sub_out_list.extend(new_codes)
             if flag != flag_2 and flag != flag_3 and flag != flag_4:
                 out_list.append(sub_out_list)
                 sub_out_list = []
             elif flag == flag_4 and i<len(concat_list)-1:
-                # 最后一个词没有配对
+                # The last word is not matched
                 next_str = concat_list[i+1][0]
-                # 微调--比较长的词不连接--len(1)与len(2)不连接
+                # Fine-tuning--longer words are not connected--len (1) and len (2) are not connected
                 if len(tmp_str)>=2 or len(next_str)>=2:
                     out_list.append(sub_out_list)
                     sub_out_list = []
         elif level == 3:
-            # 逻辑模式
+            # Logical model
             sub_out_list.extend(new_codes)
             if flag < flag_1 or flag > flag_5:
                 out_list.append(sub_out_list)
                 sub_out_list = []
         elif level == 4:
-            # 浅知模式
+            # Shallow mode
             sub_out_list.extend(new_codes)
             if flag < flag_1 or flag > flag_6:
                 out_list.append(sub_out_list)
                 sub_out_list = []
         elif level == 5:
-            # 数据模式
+            # Data model
             sub_out_list.extend(new_codes)
             if flag < flag_1 or flag > flag_7:
                 out_list.append(sub_out_list)
@@ -564,97 +564,97 @@ class TokenizerChg(object):
         self.debug_log = debug_log
 
     def get_jieba_cut_list(self, pstr):
-        ### jieba分词: 保留分割符(标点符号)
+        ### Jieba participle: reserved split characters (punctuation marks)
 #       outlist = jieba.lcut(text,HMM=False)
         outlist = list(jieba.cut(pstr, cut_all=False))
         return outlist
 
     def tokens_parsing_category_from_db(self, unique_list):
-        ### 获取类型
+        ### Get type
         number_list = get_category_from_db(unique_list, db_path=self.db_path)
         return number_list
 
     def _tokens_parsing(self, input_list, mode_num=0):
         ### mode 2~5: 
-        name_dick = {1:"单字",2:"长词",3:"逻辑",4:"浅知",5:"数据",6:""}
+        name_dick = {1: "single word", 2: "long word", 3: "logic", 4: "shallow knowledge", 5: "data", 6: ""}
         mode_name = name_dick.get(mode_num, "None")
         
         unique_list = [i[0] for i in input_list]
         code_list = [i[1:] for i in input_list]
         if self.debug_log:
-            print ("\n%d%s词性  %s" % (mode_num, mode_name, str(code_list)) )
+            print ("\n%d%sPart of speech  %s" % (mode_num, mode_name, str(code_list)) )
         flag_list = choose_connect_flag(code_list)
         concat_list = list(zip(unique_list, flag_list))
         concat_list = [[i[0]] + i[1] for i in concat_list]
         if self.debug_log:
-            print ("%d是否连接  %s" % (mode_num, str(concat_list)) )
+            print ("%dWhether to connect  %s" % (mode_num, str(concat_list)) )
         output_list = connect_content_from_flag(concat_list, code_list, mode_num)   # min=level
         if self.debug_log:
-            print ("%d%s模式  %s" % (mode_num, mode_name, str(output_list)) )
+            print ("%d%s mode  %s" % (mode_num, mode_name, str(output_list)) )
         
         return output_list
 
     def tokens_mode0(self, unique_list=None, text=None):
-        ### 分词+添加词性+多义词+两len(1)连接+名词len(1)向前连接
+        ### Participle + Add part of speech + Polysemy + Two len (1) connection + noun len (1) forward connection
         if text is not None:
             unique_list = self.get_jieba_cut_list(text)
-        ### 原词性列表
+        ### Original part of speech
         number_list = self.tokens_parsing_category_from_db(unique_list)
         concat_list = list(zip(unique_list, number_list))
         concat_list = [list(i) for i in concat_list]
         mode0_list = connect_content_from_db(concat_list, db_path=self.db_path)
         if self.debug_log:
             print ("----------------------------------")
-            print ("0初始词性  %s" % (str(mode0_list)) )
+            print ("0 Initial part of speech  %s" % (str(mode0_list)) )
         return mode0_list
 
     def tokens_mode1(self, mode0_list=None, text=None):
-        ### mode1: 单字模式
+        ### mode1: Word mode
         if text is not None:
             mode0_list  = self.tokens_mode0(text=text)
         unique_list = [i[0] for i in mode0_list]
         number_list = [i[1] for i in mode0_list]
-        ### 逐字查找词性
-        ###   detail_word 作用是拆分未知类(0,26)
+        ### Find part of speech verbatim
+        ###    The role of detail_word is to split the unknown class (0,26)
         detail_word_list,code_list = get_single_code_from_db(unique_list, db_path=self.db_path)
         if self.debug_log:
-            print ("\n1单字词性  %s" % (str(code_list)) )
-        ### 常用词性替换+多义替换+未知类(0,26)替换+拆分未知类
+            print ("\n1Single word  %s" % (str(code_list)) )
+        ### Common part-of-speech replacement + polysemy replacement + unknown class (0, 26) replacement + split unknown class
         unique_list,code_list = merge_single_code(unique_list, detail_word_list, number_list, code_list)
-        #print ("1单字合并  %s" % (str(code_list)) )
+        #print ("1Word merge  %s" % (str(code_list)) )
         flag_list = choose_connect_flag(code_list)
         concat_list = list(zip(unique_list, flag_list))
         concat_list = [[i[0]] + i[1] for i in concat_list]
         if self.debug_log:
-            print ("1是否连接  %s" % (str(concat_list)) )
+            print ("1Whether to connect  %s" % (str(concat_list)) )
         mode1_list = connect_content_from_flag(concat_list, code_list, 1)
         if self.debug_log:
-            print ("1单字模式  %s" % (str(mode1_list)) )
+            print ("1Word mode  %s" % (str(mode1_list)) )
         return mode1_list
 
     def tokens_mode2(self, mode1_list=None, text=None):
-        ### mode2: 长词模式
+        ### mode2: Long Word Mode
         if text is not None:
             mode1_list = self.tokens_mode1(text=text)
         output_list = self._tokens_parsing(mode1_list, mode_num=2)
         return output_list
 
     def tokens_mode3(self, mode2_list=None, text=None):
-        # mode3: 逻辑模式
+        # mode3: Logical model
         if text is not None:
             mode2_list = self.tokens_mode2(text=text)
         output_list = self._tokens_parsing(mode2_list, mode_num=3)
         return output_list
 
     def tokens_mode4(self, mode3_list=None, text=None):
-        ### mode4: 浅知模式
+        ### mode4: Shallow mode
         if text is not None:
             mode3_list = self.tokens_mode3(text=text)
         output_list = self._tokens_parsing(mode3_list, mode_num=4)
         return output_list
         
     def tokens_mode5(self, mode4_list=None, text=None):
-        ### mode5: 数据连接
+        ### mode5: Data Connections
         if text is not None:
             mode4_list = self.tokens_mode4(text=text)
         output_list = self._tokens_parsing(mode4_list, mode_num=5)
@@ -662,25 +662,25 @@ class TokenizerChg(object):
         
     def tokens_parsing_test(self, text=None):
         ### test:
-        ### 句子拆分
+        ### Sentence split
         unique_list = self.get_jieba_cut_list(text)
-        # 显示pstr 放在jieba调试信息后面
+        # Show pstr behind jieba debugging information
         if self.debug_log:
-            print ("句子   : ", text)
+            print ("sentence   : ", text)
             print ("jieba  : ", unique_list)
         # mode0:
         mode0_list = self.tokens_mode0(unique_list)
-        # mode1:单字模式
-        #   细化cx(如'700ml')
-        #   解决多义问题(如'箱', 'cx:6,14')
+        # mode1:Word mode
+        #   Refine cx (such as '700ml')
+        #   Solve polysemy problems (such as 'box', 'cx: 6,14')
         mode1_list = self.tokens_mode1(mode0_list)
-        # mode2:长词模式
+        # mode2:Long Word Mode
         mode2_list = self.tokens_mode2(mode1_list)
-        # mode3:逻辑模式
+        # mode3:Logical model
         mode3_list = self.tokens_mode3(mode2_list)
-        # mode4:浅知模式
+        # mode4:Shallow mode
         mode4_list = self.tokens_mode4(mode3_list)
-        # mode5:数据连接
+        # mode5:Data Connections
         mode5_list = self.tokens_mode5(mode4_list)
         return
         

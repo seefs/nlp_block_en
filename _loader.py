@@ -18,8 +18,8 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 # Custom Class
 from _token import TokenizerChg
-from _block import b2mts                         # 分块
-from _block import m2n                           # m序列
+from _block import b2mts                         # Block
+from _block import m2n                           # m sequence
 from _tool  import convert_to_unicode
 
 
@@ -40,9 +40,9 @@ debugPath    = os.path.join(dataPath, "debug")
 sqlite3_file    = os.path.join(dataPath, "sqlite3", "data.db3")
 train_csv_file  = os.path.join(csvPath,  "{}", "atec_nlp_sim_train.csv")
 test_csv_file   = os.path.join(csvPath,  "{}", "atec_nlp_sim_test.csv")
-vocab_file      = os.path.join(vocabPath, 'token_id.csv')    #词备份
-pre_train_file  = os.path.join(csvPath,  "{}", "preprocess", "train_y.csv")     #只检查了一个文件, 判断句子是否已解析
-pre_test_file   = os.path.join(csvPath,  "{}", "preprocess", "test_y.csv")      #只检查了一个文件, 判断句子是否已解析
+vocab_file      = os.path.join(vocabPath, 'token_id.csv')    #Word backup
+pre_train_file  = os.path.join(csvPath,  "{}", "preprocess", "train_y.csv")     #Only one file was checked to determine whether the sentence has been parsed
+pre_test_file   = os.path.join(csvPath,  "{}", "preprocess", "test_y.csv")      #Only one file was checked to determine whether the sentence has been parsed
 
 
 
@@ -196,7 +196,7 @@ class LoadData:
         # add hide mode
         self._add_hide_mode(add_hide_seq=self.add_hide_seq)
 
-        # 分块用到cnt, 暂时只能这里改dim
+        # Cnt is used in the block, temporarily can only change dim here
         if self.train_enable:
             self.train_cnt1 = tf.expand_dims(self.train_cnt1, -1)
             self.train_cnt2 = tf.expand_dims(self.train_cnt2, -1)
@@ -216,7 +216,7 @@ class LoadData:
             self.train_n2,self.train_mi2 = m2n(self.train_m2, self.train_cnt2, max_space=5, debug=debug, add_hide_seq=add_hide_seq)
             max_nlen = max([len(i) for i in self.train_n2])
             self.max_modes_len = max(self.max_modes_len, max_nlen)
-            #只保存, 不读
+            #Only save, don't read
             #save_preprocess_data(self.train_n1, sub_path=self.sub_path,   name='train_n1')
             #save_preprocess_data(self.train_n2, sub_path=self.sub_path,   name='train_n2')
         if self.test_enable:
@@ -228,7 +228,7 @@ class LoadData:
             self.test_n2,self.test_mi2 = m2n(self.test_m2, self.test_cnt2, max_space=5, debug=debug, add_hide_seq=add_hide_seq)
             max_nlen = max([len(i) for i in self.test_n2])
             self.max_modes_len = max(self.max_modes_len, max_nlen)
-            #只保存, 不读
+            #Only save, don't read
             #save_preprocess_data(self.test_n1, sub_path=self.sub_path,   name='test_n1')
             #save_preprocess_data(self.test_n2, sub_path=self.sub_path,   name='test_n2')
             
@@ -323,7 +323,7 @@ class LoadData:
                 modes1  = [int(mode) for item in tokens1 for mode in item[1:]]
                 modes2  = [int(mode) for item in tokens2 for mode in item[1:]]
                 self.max_seq_len = max(self.max_seq_len, len(modes1), len(modes2))
-                #用modes计算总长
+                #Use modes to calculate the total length
                 tokens1 = [item[0] if pos==0 else '_S' for item in tokens1 for pos in range(len(item[1:]))]
                 tokens2 = [item[0] if pos==0 else '_S' for item in tokens2 for pos in range(len(item[1:]))]
                 #print("\ntmp_list:", tokens1)
@@ -338,9 +338,9 @@ class LoadData:
         return np.array(t1), np.array(t2), np.array(m1), np.array(m2), np.array(cnt1), np.array(cnt2), np.array(y)
     
     def _text_to_ids(self):
-        # token 转换为 token_id
-        #   先fit全部token, 否则id不准; token会自动排序, 英文在前面('_S')
-        #   现在不能改变词之后重新训练(id不对应)
+        #convert token to token_id
+        #    First fit all tokens, otherwise the id is not allowed; tokens will be automatically sorted, with English in front ('_S')
+        #    Cannot re-train after changing the word now (id does not correspond)
         if os.path.isfile(vocab_file.format(self.sub_path)):
             self._token_arr = load_vocab_data(np.str, sub_path=self.sub_path, name='token_id')
             self.tokenizer.fit_on_texts(self._token_arr)
@@ -352,13 +352,13 @@ class LoadData:
                 self.tokenizer.fit_on_texts(self.test_t1.flatten())
                 self.tokenizer.fit_on_texts(self.test_t2.flatten())
             
-            #print("--token--word_counts", self.tokenizer.word_counts)         #数量统计--list
-            #print("--token--word_docs", self.tokenizer.word_docs)             #数量统计--dick
-            #print("--token--word_index", self.tokenizer.word_index)           #字到index--dick
-            #print("--token--document_count", self.tokenizer.document_count)   #总数
+            #print("--token--word_counts", self.tokenizer.word_counts)         #Quantity statistics --list
+            #print("--token--word_docs", self.tokenizer.word_docs)             #Quantity statistics-dick
+            #print("--token--word_index", self.tokenizer.word_index)           #Word to index--dick
+            #print("--token--document_count", self.tokenizer.document_count)   #total
             self._token_arr = np.array(list(self.tokenizer.word_index))
             save_vocab_data(self._token_arr, sub_path=self.sub_path, name='token_id')
-        self.max_vocab_len = len(self.tokenizer.word_counts) + 1               #实际总数(去重)
+        self.max_vocab_len = len(self.tokenizer.word_counts) + 1               #Actual total (deduplication)
         
         # token_id
         if self.train_enable:
@@ -389,67 +389,67 @@ class LoadData:
         return np.array(x)
     
     def get_train_data(self):
-        return (self.train_x1,     self.train_x2,       #编号
-                self.train_m1,     self.train_m2,       #类型
+        return (self.train_x1,     self.train_x2,       #Numbering
+                self.train_m1,     self.train_m2,       #Types of
                 self.train_mi1,    self.train_mi2,
-                self.train_n1,     self.train_n2,       #类型+隐藏类型
+                self.train_n1,     self.train_n2,       #Type + hidden type
                 self.train_cnt1,   self.train_cnt2)
                 
     def get_test_data(self):
-        return (self.test_x1,     self.test_x2,         #编号
-                self.test_m1,     self.test_m2,         #类型
+        return (self.test_x1,     self.test_x2,         #Numbering
+                self.test_m1,     self.test_m2,         #Types of
                 self.test_mi1,    self.test_mi2,
-                self.test_n1,     self.test_n2,         #类型+隐藏类型
+                self.test_n1,     self.test_n2,         #Type + hidden type
                 self.test_cnt1,   self.test_cnt2)
                 
     def get_train_slices(self):
-        return (self.train_x1,     self.train_x2,       #编号
-                self.train_m1,     self.train_m2,       #类型
+        return (self.train_x1,     self.train_x2,       #Numbering
+                self.train_m1,     self.train_m2,       #Types of
                 self.train_mi1,    self.train_mi2,
-                self.train_n1,     self.train_n2,       #类型+隐藏类型
+                self.train_n1,     self.train_n2,       #Type + hidden type
                 self.train_cnt1,   self.train_cnt2, 
                 self.train_y)
                 
     def get_test_slices(self):
-        return (self.test_x1,     self.test_x2,         #编号
-                self.test_m1,     self.test_m2,         #类型
+        return (self.test_x1,     self.test_x2,         #Numbering
+                self.test_m1,     self.test_m2,         #Types of
                 self.test_mi1,    self.test_mi2,
-                self.test_n1,     self.test_n2,         #类型+隐藏类型
+                self.test_n1,     self.test_n2,         #Type + hidden type
                 self.test_cnt1,   self.test_cnt2, 
                 self.test_y)
                 
     def show_data_shape(self):
         if self.train_enable:
-            #print("========== train_t1", self.train_t1.shape)         # 中文字符 (用不上)
+            #print("========== train_t1", self.train_t1.shape)         # Chinese characters (not needed)
             #print("           train_t2", self.train_t2.shape)
-            print("           train_x1", self.train_x1.shape)         # 字编号
+            print("           train_x1", self.train_x1.shape)         # Word number
             print("           train_x2", self.train_x2.shape)
-            print("           train_m1", self.train_m1.shape)         # 字类型, 原类型:0~16,17,26 训练时类型:0~16
+            print("           train_m1", self.train_m1.shape)         # Word type, original type: 0 ~ 16,17,26 training type: 0 ~ 16
             print("           train_m2", self.train_m2.shape)
             print("          train_mi1", self.train_mi1.shape)
             print("          train_mi2", self.train_mi2.shape)
             print("           train_n1", self.train_n1.shape)
             print("           train_n2", self.train_n2.shape)
-            print("         train_cnt1", self.train_cnt1.shape)       # 字长
+            print("         train_cnt1", self.train_cnt1.shape)       # Word length
             print("         train_cnt2", self.train_cnt2.shape)
-            print("            train_y", self.train_y.shape)          # 标签
+            print("            train_y", self.train_y.shape)          # label
             
         if self.test_enable:
-            #print("=========== test_t1", self.test_t1.shape)          # 中文字符 (用不上)
+            #print("=========== test_t1", self.test_t1.shape)          # Chinese characters (not needed)
             #print("            test_t2", self.test_t2.shape)
-            print("            test_x1", self.test_x1.shape)          # 字编号
+            print("            test_x1", self.test_x1.shape)          # Word number
             print("            test_x2", self.test_x2.shape)
-            print("            test_m1", self.test_m1.shape)          # 字类型, 原类型:0~16,17,26 训练时类型:0~16
+            print("            test_m1", self.test_m1.shape)          # Word type, original type: 0 ~ 16,17,26 training type: 0 ~ 16
             print("            test_m2", self.test_m2.shape)
             print("           test_mi1", self.test_mi1.shape)
             print("           test_mi2", self.test_mi2.shape)
             print("            test_n1", self.test_n1.shape)
             print("            test_n2", self.test_n2.shape)
-            print("          test_cnt1", self.test_cnt1.shape)        # 字长
+            print("          test_cnt1", self.test_cnt1.shape)       # Word length
             print("          test_cnt2", self.test_cnt2.shape)
-            print("             test_y", self.test_y.shape)
+            print("             test_y", self.test_y.shape)          # label
             
-        # 实际字长:
+        # Actual word length:
         print("        sents_len", self.sents_len)
         print("        max_vocab", self.max_vocab_len)
         print("      max_seq_len", self.max_seq_len)

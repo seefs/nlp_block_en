@@ -43,29 +43,29 @@ if not os.path.exists(debugPath):
 
 # test-1:
 def data_length_check(data):
-# 显示x1:
+# Display x1:
     for i in range(len(data.train_t1)):
         _t = data.train_t1[i]
         print("   text[%s]--%s--%s"%(i, len(_t), _t))
         
-# 检查x1长度是否相等(空格不会转换id, 最后还要填充一次):
+# Check whether the lengths of x1 are equal (spaces will not convert id, and finally have to be filled once):
     for i in range(len(data.train_x1)):
         _x = data.train_x1[i]
         print("   text[%s]--%s%s"%(i, len(_x), '--err' if len(_x)!=data.max_seq_len else ''))
     
-# 显示x2:
+# Display x2:
     for i in range(len(data.train_t2)):
         _t = data.train_t2[i]
         print("   text[%s]--%s--%s"%(i, len(_t), _t))
 
-# 检查x2长度是否相等(空格不会转换id, 最后还要填充一次):
+# Check if the lengths of x2 are equal (spaces will not convert id, it will be filled once at the end):
     for i in range(len(data.train_x2)):
         _x = data.train_x2[i]
         print("   text[%s]--%s%s"%(i, len(_x), '--err' if len(_x)!=data.max_seq_len else ''))
 
 # test-2:
 def data_order_take_out(_t1, _t2, _m1, _m2, _cnt1, _cnt2, _y):
-    # 数据顺序改为, 一正一反
+    # The data order is changed, positive and negative
     t1, t2, m1, m2, cnt1, cnt2, y = [], [], [], [], [], [], []
     clen = len(_y)
     curb,i,j = 0,0,0
@@ -111,7 +111,7 @@ def data_take_out(data, tcnt=100, fcnt=100, allcnt=0, first_cnt=0):
             tcur += b
             fcur += (1-b)
             allcur += 1
-            # allcnt=0, 表示不限制总数
+            # allcnt=0, Means unlimited total
             if (b>0 and tcur<=tcnt or b==0 and fcur<=fcnt) and (allcur<=allcnt or allcnt==0):
                 t1.append(data.train_t1[i])
                 t2.append(data.train_t2[i])
@@ -173,7 +173,7 @@ def save_tokens_parsing_info(data, df, fname=None):
     text_split_file = os.path.join(debugPath, 'text_split_{}.txt')
     file_name  = os.path.join(debugPath, text_split_file.format(fname))
     
-    # 保存分词过程:
+    # Save the word segmentation process:
     cnt = 0
     if data.sample_size is None:
         sample_size = 1
@@ -188,7 +188,7 @@ def save_tokens_parsing_info(data, df, fname=None):
                 if cnt>sample_size:
                     break
                 unique_list = data.token_chg.get_jieba_cut_list(text);
-                f.write("句子 %2d: %s\n" % (cnt, text))
+                f.write("sentence %2d: %s\n" % (cnt, text))
                 f.write("jieba  : %s\n" % (unique_list))
                 mode0_list = data.token_chg.tokens_mode0(unique_list)
                 mode1_list = data.token_chg.tokens_mode1(mode0_list)
@@ -203,7 +203,7 @@ def save_tokens_parsing_info(data, df, fname=None):
     return 0
     
 def test_save_tokens(data, sub_path=""):
-    # 保存分词过程:
+    # Save the word segmentation process:
     if data.train_enable:
         train = load_directory_data(train_csv_file.format(sub_path))
         save_tokens_parsing_info(data, train, fname="train")
@@ -224,28 +224,28 @@ def main(_):
     data.show_data_shape()
     
 # test-1:
-#   检查长度是否相等(预处理错误时，输出每条数据长度)
+#   Check if the length is equal (when the preprocessing error, output the length of each data)
     if FLAGS.test_type == "data_length_check":
         data_length_check(data)
 
     
 # test-2:
-#   参数说明:
-#     1.各取100-----正例100, 反例100, 一共200
-#       data_take_out(data, tcnt=100, fcnt=100)
-#     各取500-----正例500, 反例500, 一共1000
-#       data_take_out(data, tcnt=500, fcnt=500)
-#     2.各取100, 从101开始-----正例100, 反例100, 从第200+1开始
-#       data_take_out(data, tcnt=100, fcnt=100, first_cnt=200)
-#     3.共取200, 正反例个数不确定
-#       data_take_out(data, tcnt=999, fcnt=999, allcnt=200)
+#   Parameter Description:
+#      1. Take 100 ----- positive examples 100, negative examples 100, a total of 200
+#        data_take_out (data, tcnt = 100, fcnt = 100)
+#      Take 500 ----- positive example 500, negative example 500, a total of 1000
+#        data_take_out (data, tcnt = 500, fcnt = 500)
+#      2. Take 100 each, starting from 101-positive example 100, negative example 100, starting from 200 + 1
+#        data_take_out (data, tcnt = 100, fcnt = 100, first_cnt = 200)
+#      3. A total of 200, the number of positive and negative examples is uncertain
+#        data_take_out (data, tcnt = 999, fcnt = 999, allcnt = 200)
 #
     if FLAGS.test_type == "data_take_out":
         data_take_out(data, tcnt=FLAGS.tcnt, fcnt=FLAGS.fcnt, allcnt=FLAGS.allcnt, first_cnt=FLAGS.first_cnt)
 
 
 # test-3:
-#   保存分词过程
+#   Save the word segmentation process
     if FLAGS.test_type == "save_tokens":
         test_save_tokens(data, sub_path="")
         #test_save_tokens(data, sub_path="_tf200_2_f1_0529")

@@ -168,67 +168,67 @@ def run_optimization(mRun, x1, x2, m1, m2, mi1, mi2, n1, n2, cnt1, cnt2, y):
 
 
 def check_run_stop(step, data, model, mRun):
-    # 单步训练与总体评估，批大小不一样, 这里单独计算总体评估
+    # One-step training is different from the overall evaluation, the batch size is different, here the overall evaluation is calculated separately
     if data.test_enable:
-        pred = model.predict(data.get_test_data())    # 感觉这个要快，相对于pred = model([])方式
+        pred = model.predict(data.get_test_data())    # I feel this is faster, compared to the pred = model ([]) method
         loss = cross_entropy_loss(pred, data.train_y)
         acc  = accuracy(data.train_y, pred)
-        f1_score = expand_dims_f1(data.train_y, pred)  # 如果直接用f1，参数格式不对
+        f1_score = expand_dims_f1(data.train_y, pred)  # If f1 is used directly, the parameter format is incorrect
     
         if step<0:
-            # 训练结束, 传参数-1, 显示总指标:
+            # At the end of training, pass parameter -1, and display the total index:
             print(">>>>> Save %i times. predict: accuracy: %f, f1: %f" % (mRun.cur_save_cnt, acc, f1_score))
         elif acc>mRun.check_stop_acc and f1_score>mRun.check_stop_f1:
-            # 更新f1, 但不更新acc
-            # 检查f1  , 判断是否保存:
+            # Update f1, but not update acc
+            # Check f1 to determine whether to save:
             mRun.check_stop_f1   = f1_score
-            # 更新weights, 动态改变结束步长
+            # Update weights, dynamically change end step
             if mRun.cur_stop_step>0:
                 print(">>>>> useful data. update stop step: %s, min f1 = %f"%(step+mRun.diff_stop_step, mRun.check_stop_f1))
                 model.save_weights(h5_file.format(data.max_vocab_len), overwrite=True)
                 mRun.cur_save_cnt = mRun.cur_save_cnt + 1
-                # 第N步后退出:
+                # Exit after step N:
                 mRun.cur_stop_step = step + mRun.diff_stop_step
             else:
-                # 第1步不保存, 效果未知, 避免覆盖上次训练的结果
+                # Step 1 does not save, the effect is unknown, avoid overwriting the results of the last training
                 print(">>>>> init min f1 = %f"%(mRun.check_stop_f1))
                 print(">>>>> init stop step: %s"%(step+mRun.diff_stop_step))
-                # 第N步后退出:
+                # Exit after step N:
                 mRun.cur_stop_step = mRun.start_check_step + mRun.diff_stop_step
         else:
-            # 退出条件
+            # Exit conditions
             if mRun.cur_stop_step>0 and step>mRun.cur_stop_step:
                 print(">>>>> Stop running, No new effect within %s steps. cur step: %s > %s" % (mRun.diff_stop_step, step, mRun.cur_stop_step))
                 return 1
             print(">>>>> %i. useless data. acc = %f, f1 = %f < %f" % (step, acc, f1_score, mRun.check_stop_f1))
     elif data.train_enable:
-        pred = model.predict(data.get_train_data())    # 感觉这个要快，相对于pred = model([])方式
+        pred = model.predict(data.get_train_data())    # I feel this is faster, compared to the pred = model ([]) method
         loss = cross_entropy_loss(pred, data.train_y)
         acc  = accuracy(data.train_y, pred)
-        f1_score = expand_dims_f1(data.train_y, pred)  # 如果直接用f1，参数格式不对
+        f1_score = expand_dims_f1(data.train_y, pred)  # If f1 is used directly, the parameter format is incorrect
     
         if step<0:
-            # 训练结束, 传参数-1, 显示总指标:
+            # At the end of training, pass parameter -1, and display the total index:
             print(">>>>> Save %i times. predict: accuracy: %f, f1: %f" % (mRun.cur_save_cnt, acc, f1_score))
         elif acc>mRun.check_stop_acc and f1_score>mRun.check_stop_f1:
-            # 更新f1, 但不更新acc
-            # 检查f1  , 判断是否保存:
+            # Update f1, but not update acc
+            # Check f1 to determine whether to save:
             mRun.check_stop_f1   = f1_score
-            # 更新weights, 动态改变结束步长
+            # Update weights, dynamically change end step
             if mRun.cur_stop_step>0:
                 print(">>>>> useful data. update stop step: %s, min f1 = %f"%(step+mRun.diff_stop_step, mRun.check_stop_f1))
                 model.save_weights(h5_file.format(data.max_vocab_len), overwrite=True)
                 mRun.cur_save_cnt = mRun.cur_save_cnt + 1
-                # 第N步后退出:
+                # Exit after step N:
                 mRun.cur_stop_step = step + mRun.diff_stop_step
             else:
-                # 第1步不保存, 效果未知, 避免覆盖上次训练的结果
+                # Step 1 does not save, the effect is unknown, avoid overwriting the results of the last training
                 print(">>>>> init min f1 = %f"%(mRun.check_stop_f1))
                 print(">>>>> init stop step: %s"%(step+mRun.diff_stop_step))
-                # 第N步后退出:
+                # Exit after step N:
                 mRun.cur_stop_step = mRun.start_check_step + mRun.diff_stop_step
         else:
-            # 退出条件
+            # Exit conditions
             if mRun.cur_stop_step>0 and step>mRun.cur_stop_step:
                 print(">>>>> Stop running, No new effect within %s steps. cur step: %s > %s" % (mRun.diff_stop_step, step, mRun.cur_stop_step))
                 return 1
@@ -245,14 +245,14 @@ def start_train(mRun):
     # Run training for the given number of steps.
     for step, (x1, x2, m1, m2, mi1, mi2, n1, n2, cnt1, cnt2, y) in enumerate(mRun.ds_train.take(mRun.training_steps), 1):
         if random.random() < .3:
-            # 其实丢掉第1步，对初始化f1没有影响
+            # Actually throwing away step 1 has no effect on initializing f1
             if step % mRun.display_step == 0 or step == 1:
                 print("step: %i,  give up." % (step))
             continue
             
         check_ret = 0
         if mRun.is_use_check_stop and step>mRun.start_check_step or mRun.cur_stop_step == 0:
-            # 一定会输出log，保存或不保存.
+            # Log will be output, save or not save.
             check_ret = check_run_stop(step, mRun.data, mRun.model, mRun)
             
         if check_ret>0:
@@ -264,7 +264,7 @@ def start_train(mRun):
             if step % mRun.display_step == 0 or step == 1:
                 #loss = cross_entropy_loss(pred, y)
                 acc   = accuracy(y, pred)
-                f1_score  = expand_dims_f1(y, pred)   # 用f1有问题
+                f1_score  = expand_dims_f1(y, pred)   # There is a problem with f1
                 print("step: %i,  loss: %f, accuracy: %f, f1: %f" % (step, loss, acc, f1_score))
 
 
@@ -274,7 +274,7 @@ def start_train(mRun):
         mRun.cur_save_cnt = mRun.cur_save_cnt + 1
 
 
-    # 总的acc,f1
+    # Total acc, f1
     check_run_stop(-1, mRun.data, mRun.model, mRun)
 
 

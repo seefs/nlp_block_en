@@ -24,7 +24,7 @@ import logging
 
 # In[1]:
 
-#分板
+#Scoreboard
 def get_board(seq, mi, cnt, st_size=17, board_len=5):
     def _pad(ids):
         # min(len, 5)
@@ -44,7 +44,7 @@ def get_board(seq, mi, cnt, st_size=17, board_len=5):
         def cond(i, cnt,  output):
             return  tf.less(i, cnt)
         def body(i, cnt,  output):
-            # 连接cx相同的分类
+            # Connect cx to the same category
             # m:1~16
             COLUMN_M = 2
             pxvm = seq[i]
@@ -62,7 +62,7 @@ def get_board(seq, mi, cnt, st_size=17, board_len=5):
         output = _pad(output)
         return output
     def _each(seq, mi, cnt):
-        #实际长度cnt为mi最后一项
+        #The actual length cnt is the last item of mi
         cnt = tf.cast(cnt, dtype=tf.int32)
         cnt = tf.cast(mi[cnt-1]+1, dtype=tf.int32)
         output = tf.zeros([0,5,3], dtype=tf.float32)
@@ -82,7 +82,7 @@ def get_board(seq, mi, cnt, st_size=17, board_len=5):
     return output
 
     
-#序列化
+#Serialization
 def get_pxvm(em_p, em_v, input_mi, input_n, input_cnt, max_seq=5):
     def left_full(mi, cnt, n):
         output = tf.constant([], dtype=tf.float32)
@@ -195,30 +195,30 @@ def get_pxvm(em_p, em_v, input_mi, input_n, input_cnt, max_seq=5):
 #        output = tf.cast(output, dtype=tf.float32)
         return output
     def _each(p, v, mi, n, cnt):
-        # n:seq, 
-        # cnt:实际长度
-        # mi:seq的下标
+        #n: seq,
+        #  cnt: actual length
+        #  subscript of mi: seq
 #        logging.getLogger().info("\n--_each-p\n  %s" % (tf.shape(p)))
 #        logging.getLogger().info("--_each-v\n  %s" % (tf.shape(v)))
-        # 向前向后2种编号, 0,1,2..
-        #   mi长度可小于n(n用作填充)
+        # 2 numbers forward and backward, 0,1,2 ...
+        #    mi length can be less than n (n is used as padding)
         mi_l = left_full(mi, cnt, n)
         mi_r = right_full(mi, cnt, n)
 #        logging.getLogger().info("--p\n  %s" % (p))
 #        logging.getLogger().info("--n\n  %s" % (n))
 #        logging.getLogger().info("--mi_l\n  %s" % (mi_l))
 #        logging.getLogger().info("--mi_r\n  %s" % (mi_r))
-        # 连接p, 将编号换成概率
+        # Connect p, replace the number with a probability
         pl = _concat(p, mi_l, n, mi, cnt)
         pr = _concat(p, mi_r, n, mi, cnt)
 #        logging.getLogger().info("--pl\n  %s" % (pl))
 #        logging.getLogger().info("--pr\n  %s" % (pr))
-        # 连接v, 将编号换成编号
+        # Connect v, replace the number with a number
         vl = _concat(v, mi_l, n, mi, cnt)
         vr = _concat(v, mi_r, n, mi, cnt)
-        # 选择最大概率
+        # Select maximum probability
         output = max_p(mi, vl, vr, pl, pr, cnt)
-        output = _pad(output, max_seq) #只有1维, 不能用pad_sequences
+        output = _pad(output, max_seq) #Only 1 dimension, pad_sequences cannot be used
         return output
     output = tf.map_fn(lambda x: _each(x[0], x[1], x[2], x[3], x[4]), (em_p, em_v, input_mi, input_n, input_cnt), dtype=tf.float32)
     return output
@@ -314,11 +314,11 @@ class EmbeddingsLayer(Layer):
         out_x = tf.expand_dims(out_x, -1)
         out_m = tf.expand_dims(out_m, -1)
         out_xvm = tf.concat([out_x, out_v, out_m], -1)
-        # m范围是0~16, st_size>16
+        # m range is 0 ~ 16, st_size> 16
         # shape (5,17,5,2)
         out_board = get_board(out_xvm, input_mi, input_cnt, st_size=17, board_len=self.board_size)
         
-        # 保留vx, 不要m
+        # Keep vx, don't m
         out_board = tf.slice(out_board, [0,0,0,0], [-1,-1,-1,2])
             
         out_board = tf.reshape(out_board, [-1,17*5*2])
@@ -342,8 +342,8 @@ def board_compare(board1, board2, board_size=5, style_size=17):
         row = tf.concat([arr_p, arr_r, arr_l, arr_n], 0)
         return row
     def _sort(row):
-#        ### 查看排序+替换过程
-#        #   替换前
+#        ### View sort + replace process
+#        #   Before replacement
 #        if EmbeddingsLayer.debug:
 #            row_pre = row
 #            logging.getLogger().info("--_sort start\n  %s" % (row))
@@ -354,14 +354,14 @@ def board_compare(board1, board2, board_size=5, style_size=17):
                 arr_r = tf.slice(row, [j+1,0], [1,1])
                 arr_r = K.squeeze(K.squeeze(arr_r, 0), 0)
                 row = tf.cond(tf.less(arr_l, arr_r), lambda:_replace(row,j,j+1), lambda:row)
-#        #   替换后
+#        #   After replacement
 #        if EmbeddingsLayer.debug:
 #            logging.getLogger().info("--_sort start\n  %s" % (row))
 #            logging.getLogger().info("--_sort result %s" % (np.all(tf.equal(row_pre, row))))
         return row
     def _compare_cnt(row1, row2):
-        ### 这是2个特殊的公式:
-        #    硬套的公式, 为了计算方便
+        ### Here are 2 special formulas:
+        #     Hard formula, for easy calculation
         #    sum=((max-0.5)*cnt1+(min-0.5)*cnt2)/(cnt1+cnt2)
         #    cnt=(max+min)/(min+2)
         _cnt1 = tf.constant(0., dtype=tf.float32)
@@ -381,12 +381,12 @@ def board_compare(board1, board2, board_size=5, style_size=17):
 #        logging.getLogger().info("--_compare_cnt  %s %s-->%s" % (np.array(_cnt1), np.array(_cnt2), np.array(output)))
         return output
     def _compare(row1, row2):
-        ### 比较行与行
-        #   shape (5),(5)
-        #   比较方式: 类型+个数
+        ### Compare rows with rows
+        #   shape (5), (5)
+        #   Comparison method: type + number
         _sum = tf.constant(0., dtype=tf.float32)
         _cnt = tf.constant(0., dtype=tf.float32)
-        #   类型--两两相乘/总次数
+        #   Type-Multiplying each other / total times
         r=0
         while (r < board_size):
             c=0
@@ -396,7 +396,7 @@ def board_compare(board1, board2, board_size=5, style_size=17):
                 vc = tf.slice(row2, [c], [1])
                 vc = K.squeeze(vc, -1)
                 calc = K.abs(vr+vc)/(K.abs(vr-vc)+K.epsilon())
-                calc = K.clip(calc, 1, 9) #裁剪
+                calc = K.clip(calc, 1, 9) #Crop
                 calc = calc-0.5 + K.abs(vr+vc)*0.001
                 _sum = tf.cond(tf.logical_or(tf.not_equal(vc, 0), tf.not_equal(vr, 0)), lambda:_sum+calc, lambda:_sum)
                 _cnt = tf.cond(tf.logical_or(tf.not_equal(vc, 0), tf.not_equal(vr, 0)), lambda:_cnt+1, lambda:_cnt)
@@ -405,7 +405,7 @@ def board_compare(board1, board2, board_size=5, style_size=17):
         cnt3 = _compare_cnt(row1, row2)
         cnt3 = tf.cond(tf.equal(cnt3, 0), lambda:cnt3+1, lambda:cnt3)
         output = tf.cond(tf.equal(_cnt, 0), lambda:_sum, lambda:tf.squeeze(_sum*cnt3/_cnt))
-        ### 查看行与行比较结果
+        ### View row-to-row comparison results
 #        if EmbeddingsLayer.debug:
 #            logging.getLogger().info("\n--row1  %s" % (row1))
 #            logging.getLogger().info("--row2  %s" % (row2))
@@ -413,15 +413,15 @@ def board_compare(board1, board2, board_size=5, style_size=17):
 #            logging.getLogger().info("--cnt  %s" % (_cnt))
 #            logging.getLogger().info("--compare  %s" % (output))
         ###
-        ### 直接输出概率:
-        ###   手动测试0.7比较好
+        ### Direct output probability:
+        ###   Manually testing 0.7 is better 
         output = output*0.7
         return output
     def _each(board1, board2):
-        # 按x排序, 没起作用
+        # Sort by x, didn't work
         board1 = tf.map_fn(lambda x: _sort(x), board1, dtype=tf.float32)
         board2 = tf.map_fn(lambda x: _sort(x), board2, dtype=tf.float32)
-#        # 查看输入x+v值
+#        # View input x + v value
 #        if EmbeddingsLayer.debug:
 #            logging.getLogger().info("--board1\n  %s" % (board1))
 #            logging.getLogger().info("--board2\n  %s" % (board2))
@@ -446,17 +446,17 @@ def brd_compare(inputs):
 
 # In[4]:
 
-# 效果1
+# Effect 1
 #init_board_scale = np.array([0.99,  1,1,1,1,1,  1,1,1,0.95,0.90,  0.90,0.90,0.95,0.90,0.90, 0.90])
-# 效果2(细整过)
+# Effect 2(Finished)
 #init_board_scale = np.array([0.00,  1.00, 0.95, 1.00, 1.00, 1.00,   1.00, 1.00, 1.00, 1.17, 0.80,   0.80, 0.80, 0.90, 0, 0.80,  0.80])
-# 效果3(细整过)
+# Effect 3(Finished)
 init_board_scale = np.array([0.00,  1.00, 1.15, 1.00, 1.00, 1.00,   1.00, 1.00, 1.00, 1.695, 0.80,   0.80, 0.80, 0.90, 0, 0.80,  0.80])
 
 def brd_mean(inputs):
     b_S17 = inputs
     def _each(b_17):
-        # (删除了2个0, 最终结果增加了1个点)
+        # (Removed 2 0s, and finally added 1 point)
         output = b_17*init_board_scale
         cnt = K.sum(tf.cast(tf.greater(output, 0), dtype=tf.float32), axis=None, keepdims=False)
         cnt = tf.cond(tf.equal(cnt, 0), lambda:cnt+1, lambda:cnt)
@@ -472,8 +472,8 @@ def brd_mean(inputs):
 #init_max_value = [1.183, 0.70,1.25,1.00,1.02,0.00, 0.60,0.95,0,0,0, 0,0,0,0,0, 0]
 init_max_value = [1.064, 0.70,1.25,1.00,1.02,0.00, 0.60,0.95,0,0,0, 0,0,0,0,0, 0]
 init_max_hv   = 2.76
-### 直接混合, 新指标(max)为False才用旧指标(mean)
-### 效果比第1种好, 比第3种差
+### Direct mixing, the old indicator (mean) is used when the new indicator (max) is False
+### The effect is better than the first kind, worse than the third kind
 def brd_max(inputs):
     b_S17 = inputs
     def _each(b_17):
@@ -502,9 +502,9 @@ def brd_max(inputs):
 
 
 # In[6]:
-# 效果1
+# Effect 1
 #init_cls_value = np.array([0.82,  0.50, 1.15, 1.00, 0.87, 0,  0.65, 0.94, 0, 0, 0,  0, 0, 0, 0, 0,  0])
-# 效果2(细整过)
+# Effect 2 (finished)
 init_cls_value = np.array([1.286,  0.883, 1.117, 1.00, 1.24, 0,  0.80, 1.10, 0, 0, 0,  0, 0, 0, 0, 0,  0])
 
 partV=[
@@ -516,9 +516,9 @@ partV=[
         [0.55,0.60,0.00,1.687,0.20],
         [0.60,0.65,0.00,1.375,0.20]
      ]
-### 渐进混合, 小中取大, 大中去小
-###   旧指标(mean)小于0.5时--新指标(max)添加最大值:
-###   旧指标(mean)大于0.5时--新指标(max)去掉最小值:
+### Gradual mixing, small to medium, large to medium, small to medium
+###    When the old indicator (mean) is less than 0.5-the new indicator (max) adds the maximum value:
+###    When the old indicator (mean) is greater than 0.5-the new indicator (max) removes the minimum value:
 def brd_max_mean(inputs):
     b_S17 = inputs
     def each_max(b_17):
@@ -544,11 +544,11 @@ def brd_max_mean(inputs):
         output = tf.map_fn(lambda x: each_merge(x[0], x[1], partV), (mean_pred, max_pred), dtype=tf.float32)
         return tf.reshape(output,[-1,1])
     ###
-    # 获取mean指标(所有类型)
+    # Get mean indicators (all types)
     mean_pred = brd_mean(b_S17)
-    # 获取max指标(常用类型)
+    # Get max index (common type)
     max_pred = get_max_pred(b_S17)
-    # 合并指标:
+    # Combined indicators:
     output = merge_pred(mean_pred, max_pred, partV)
     return  tf.reshape(output,[-1,1])
 
@@ -556,7 +556,7 @@ def brd_max_mean(inputs):
 # In[7]:
 
 def brd_concat(inputs):
-    ### 直接输出概率:
+    ### Direct output probability:
     p = K.clip(inputs, 0, 1)
     n = 1-p
     output = tf.concat([n, p], -1)

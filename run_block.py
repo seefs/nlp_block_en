@@ -88,7 +88,7 @@ block_model.save_weights(h5_file.format(data.max_vocab_len), overwrite=True)
 # In[4]:
 
 
-# 验证(训练ok后再打开)
+# Verify (open after training ok)
 #if data.train_enable:
 #    _, train_acc, train_f1 = block_model.evaluate(data.get_train_data(), data.train_y)
 #    print(" eval--train acc", train_acc)
@@ -103,7 +103,7 @@ block_model.save_weights(h5_file.format(data.max_vocab_len), overwrite=True)
 
 # In[5]:
 
-# 加载weights再次验证(不用)
+# Load weights and verify again (not needed)
 #new_model = create_model(data.max_vocab_len, data.max_seq_len, h5_file=h5_file, debug=False, mean='mean', save_data=False)
 #new_model.load_weights(h5_file.format(data.max_vocab_len))
 #if data.train_enable:

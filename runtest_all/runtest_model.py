@@ -46,8 +46,8 @@ def main(_):
     print ("  train: %s" % (FLAGS.train))
     print ("  test: %s" % (FLAGS.test))
     print ("  mean: %s" % (FLAGS.mean))              # 'mean', 'max', 'max_mean'
-    print ("  save_data: %s" % (FLAGS.save_np_data)) # 输出比较值(np)
-    print ("  add_hide_seq: %s" % (FLAGS.add_hide_seq)) # 输出比较值(np)
+    print ("  save_data: %s" % (FLAGS.save_np_data)) # Output comparison value (np)
+    print ("  add_hide_seq: %s" % (FLAGS.add_hide_seq)) # Whether to unhide the encoding
     
     data = LoadData(sample_size=None, train_enable=FLAGS.train, test_enable=FLAGS.test, add_hide_seq=FLAGS.add_hide_seq)
     data.show_data_shape()
@@ -56,10 +56,10 @@ def main(_):
 
     if data.train_enable:
         if FLAGS.save_np_data:
-            # 用这个方法, 代码会走model.call(), 这样才能输出详细logging
+            # With this method, the code will go to model.call () so that detailed records can be output
             pred = model([data.get_train_data()])
         else:
-            # 速度快
+            # high speed
             pred = model.predict(data.get_train_data())
         loss = cross_entropy_loss(pred, data.train_y)
         print ("  pred--loss: %s" % (loss))
@@ -72,16 +72,16 @@ def main(_):
         
     if data.test_enable:
         if FLAGS.save_np_data:
-            # 用这个方法, 代码会走model.call(), 这样才能输出详细logging
+            # With this method, the code will go to model.call () so that detailed records can be output
             pred = model.predict(data.get_test_data())
         else:
-            # 速度快
+            # high speed
             pred = model([data.get_test_data()])
         loss = cross_entropy_loss(pred, data.test_y)
         print ("  pred--loss: %s" % (loss))
         acc = accuracy(data.test_y, pred)
         print ("  pred--acc:  %s" % (acc))
-        f1_score = expand_dims_f1(data.test_y, pred)  # 用f1有问题
+        f1_score = expand_dims_f1(data.test_y, pred)  # There is a problem with f1
         print ("  pred--f1:   %s" % (f1_score))
         res_string = 'loss=%s,   acc=%s,   f1_score=%s'%(np.array(loss), np.array(acc), np.array(f1_score))
         save_pred_result(data.test_t1, data.test_t2, pred, data.test_y, res_string, name='test_calc')

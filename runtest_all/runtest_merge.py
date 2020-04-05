@@ -36,7 +36,7 @@ from _model import create_model
 
 
 # test_w--1
-#   公共替换 效果
+#   Public replacement effect
 def get_data(sub_path=''): 
     data = LoadData(sub_path=sub_path, sample_size=None, train_enable=True, test_enable=False)
     # data.show_data_shape()
@@ -56,7 +56,7 @@ def set_weights(model, weights):
     model.set_weights(weights)
 
 def load_vocab(tokens):
-    ## 可用这个代替: data2.tokenizer.word_index
+    ## You can use this instead: data2.tokenizer.word_index
     vocab = collections.OrderedDict()
     index = 0
     for token in tokens:
@@ -71,14 +71,14 @@ def merge_weights(data1, data2, weights1, weights2):
     # shape=[468]
     
     wp,wv=[],[]
-    #id 错位.
+    #id dislocation.
     wid = 0
     wp.append(weights1[0,0,:])
     wv.append(weights1[1,0,:])
     for i in range(len(data1._token_arr)):
         token1 = data1._token_arr[i]
         if token1 in vocab2:
-            # id 错位.
+            # id dislocation.
             wid = vocab2[token1]+1
             wp.append(weights2[0,wid,:])
             wv.append(weights2[1,wid,:])
@@ -107,7 +107,7 @@ def model_predict(model, data):
         print ("  pred--loss: %s" % (loss))
         acc = accuracy(data.test_y, pred)
         print ("  pred--acc:  %s" % (acc))
-        f1_score = expand_dims_f1(data.test_y, pred)  # 用f1有问题
+        f1_score = expand_dims_f1(data.test_y, pred)  # There is a problem with f1
         print ("  pred--f1:   %s" % (f1_score))
 
 def run_weights_merge(): 
@@ -125,7 +125,7 @@ def run_weights_merge():
     weights2 = get_weights(model2)
     # shape=[2 469  17]
 
-    # 合并
+    # merge
     w = merge_weights(data1, data2, weights1, weights2)
     print ("  w:  %s" % (tf.shape(w)))
     # shape=[2 424  17]
@@ -133,19 +133,19 @@ def run_weights_merge():
     #
     #save_debug_data(weights2[0], name='weights_1')
 
-    print ("参数替换前:")
-    ### 效果:
+    print ("Before parameter replacement:")
+    ### effect:
     ###   acc:0.529  f1:0.5294117
     model_predict(model1, data1)
     
     set_weights(model1, w)
     
-    print ("参数替换后:")
+    print ("After parameter replacement:")
     model_predict(model1, data1)
-    ### 效果:
+    ### effect:
     ###   acc:0.63  f1:0.597826
     
-    ### 保存到新h5, 手动覆盖
+    ### Save to new h5, manually overwrite
 #    tmp_h5_file = h5_file.format(sub_path1, 'tmp')
 #    model1.save_weights(tmp_h5_file, overwrite=True)
 
@@ -153,7 +153,7 @@ def run_weights_merge():
 
 
 # test_w--2
-#   部分替换 效果
+#   Partial replacement effect
 def get_common_weights(data, weights, cnt=1):
     num_list = data.token_chg.tokens_parsing_category_from_db(data._token_arr)
     num_list = np.array(num_list)
@@ -169,7 +169,7 @@ def get_common_weights(data, weights, cnt=1):
         while _cnt<cnt and ni<max_len:
             cx = num_list[ni]
             if int(cx) == cx_id:
-                #id 错位. weights长度大于1
+                #id is misaligned. weights are longer than 1
                 p_key = 'p_'+str(cx_id)+'_'+str(_cnt)
                 w_dict[p_key] = weights[0, ni+1, :]
                 
@@ -187,7 +187,7 @@ def set_common_weights(data, w_dict, index=0):
     #num_list:  ['5' '2' '14' ... '3' '0' '3']
     
     wp,wv=[],[]
-    #id 错位. 
+    #id is misplaced.
     p_key = 'p_0_'+str(index)
     wp.append(w_dict.get(p_key, []))
     v_key = 'v_0_'+str(index)
@@ -213,9 +213,9 @@ def set_common_weights(data, w_dict, index=0):
 
 def run_weights_set(): 
     # 1
-#    用未训练集, 是0.67:
+#    With the untrained set, it is 0.67:
     sub_path1 = '_tf200_2_f1_0529'
-#    用已训练集, 还是0.67:
+#    Use the trained set, or 0.67:
 #    sub_path1 = ''
     data1  = get_data(sub_path=sub_path1)
     model1 = get_model(data1, sub_path=sub_path1)
@@ -229,34 +229,34 @@ def run_weights_set():
     weights2 = get_weights(model2)
     # shape=[2 469  17]
 
-    # 公共
+    # public
     w_dict = get_common_weights(data2, weights2, cnt=1)
     #print ("  w_dict:  %s" % (w_dict))
 
-    # 合并
+    # merge
     w = set_common_weights(data1, w_dict, index=0)
     print ("  w:  %s" % (tf.shape(w)))
     # shape=[2 424  17]
 
-    # 保存词典--用于其他数据集
-    # 保存不了....
+    # Save dictionary--for other data sets
+    # Can't save ...
     #save_debug_data(w_dict, name='weights_1')
 
-    print ("参数替换前:")
-    ### 效果:
+    print ("before parameter replacement:")
+    ### Effect:
     ###   acc:0.529  f1:0.5294117
     model_predict(model1, data1)
     
     set_weights(model1, w)
     
-    print ("参数替换后:")
+    print("After parameter replacement:")
     model_predict(model1, data1)
-    ### 全替换 效果:
+    ### Full replacement effect:
     ###   acc:0.60  f1:0.6694214
-    ### 部分替换 效果:
+    ### Partial replacement effect:
     ###   acc:0.63  f1:0.597826
 
-    ### 保存到新h5, 手动覆盖
+    ### Save to new h5, manually overwrite
     tmp_h5_file = h5_file.format(sub_path1, 'tmp')
     model1.save_weights(tmp_h5_file, overwrite=True)
 
@@ -266,7 +266,7 @@ run_weights_set()
 
 
 # test_w--3
-#   公共+部分替换 效果
+#   Public + partial replacement effect
 def run_weights_merge_set(): 
     # 1
     sub_path1 = '_tf200_2_f1_0529'
@@ -282,17 +282,17 @@ def run_weights_merge_set():
     weights2 = get_weights(model2)
     # shape=[2 469  17]
 
-    # 公共--get
+    # Public --get
     w_dict = get_common_weights(data2, weights2)
     #print ("  w_dict:  %s" % (w_dict))
 
-    # 公共--set
+    # Public --set
     w = set_common_weights(data1, w_dict, index=0)
     print ("  w:  %s" % (tf.shape(w)))
     # err shape=[2 415  17]
     # or  shape=[2 424  17]
 
-    # 合并--公共w与weights2
+    # Merge-public w and weights2
     w = merge_weights(data1, data2, w, weights2)
     print ("  w:  %s" % (tf.shape(w)))
     # shape=[2 424  17]
@@ -300,20 +300,20 @@ def run_weights_merge_set():
     #
     #save_debug_data(weights2[0], name='weights_1')
 
-    print ("参数替换前:")
-    ### 效果:
+    print("before parameter replacement:")
+    ### Effect:
     ###   acc:0.529  f1:0.5294117
     model_predict(model1, data1)
     
     set_weights(model1, w)
     
-    print ("参数替换后:")
+    print("After parameter replacement:")
     model_predict(model1, data1)
-    ### 公共替换 效果:
+    ### Public replacement effect:
     ###   acc:0.60  f1:0.6694214
-    ### 部分替换 效果:
+    ### Partial replacement effect:
     ###   acc:0.63  f1:0.597826
-    ### 公共+部分替换 效果:
+    ### Public + partial replacement Effect:
     ###   acc:0.64  f1:0.60869557
 
 

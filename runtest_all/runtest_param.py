@@ -36,7 +36,7 @@ from _loader import LoadData, load_debug_data, load_preprocess_data
 #from _token import TokenizerChg
 from _losses import f1, expand_dims_f1, cross_entropy_loss, accuracy
 #from _model import create_model
-from _layer import EmbeddingsLayer                # 词向量
+from _layer import EmbeddingsLayer                # Word vector
 
 
 
@@ -165,57 +165,57 @@ def main(_):
     print ("  y_true: %s" % (tf.shape(y_true)))
 
 
-### 最大单项值:
+### Maximum single value:
     #   max: 3.0717332
     #   max: 3.38998
     tmp = tf.reshape(brd_sum, [-1])
     print ("  max: %s  min: %s" % (np.array(max(tmp)), np.array(min(tmp))))
     print ("------------------------------")
 
-##### 单一指标1: 
+##### Single indicator 1:
     #   f1: 0.739130
     #   f1: 0.755319
-    print ("单一指标1，比较全部类型，用旧系数:")
+    print ("Single index 1, compare all types, used coefficient:")
     old_list = get_old_class(brd_sum, HP_m = None)
     acc,f1_score = old_acc_f1(old_list, y_true)
     print("accuracy: %f, f1: %f" % (acc, f1_score))
     
-    print ("                        用最新系数1:")
+    print ("                        Use the latest factor 1:")
 #    HP_o = np.array([0.00,  1.00, 0.95, 1.00, 1.00, 1.00,   1.00, 1.00, 1.00, 1.17, 0.80,   0.80, 0.80, 0.90, 0, 0.80,  0.80])
     HP_o = np.array([0.00,  1.00, 1.15, 1.00, 1.00, 1.00,   1.00, 1.00, 1.00, 1.695, 0.80,   0.80, 0.80, 0.90, 0, 0.80,  0.80])
     old_list = get_old_class(brd_sum,  HP_m = HP_o)
-    # 单独指标, 原最佳指标
+    # Separate indicator
     acc,f1_score = old_acc_f1(old_list, y_true)
     print("accuracy: %f, f1: %f" % ( acc, f1_score))
     print ("------------------------------")
     
-##### 单一指标2: 
+##### Single indicator 2:
     #   f1: 0.8115942
     #   f1: 0.73465335
-    print ("单一指标2，比较主要类型，用最新系数2，基准线:")
+    print ("Single indicator 2, comparing the main types, using the latest coefficient 2, the baseline:")
 #    HP_c = np.array([0.82,  0.50, 1.15, 1.00, 0.87, 0,  0.65, 0.94, 0, 0, 0,  0, 0, 0, 0, 0,  0])
     HP_c = np.array([1.286,  0.883, 1.117, 1.00, 1.24, 0,  0.80, 1.10, 0, 0, 0,  0, 0, 0, 0, 0,  0])
 #    hv = 2.625
     hv = 2.4375
-    # 更新新指标, 取符合常用条件的例子
+    # Update new indicators, take examples that meet common conditions
     new_list = get_new_class(brd_sum, y_true, HP_c=HP_c, HP_m=hv)
-    # 单独指标, 比混合指标低
+    # Individual indicators, lower than mixed indicators
     acc,f1_score = old_acc_f1(new_list, y_true)
     print("cur: %s, accuracy: %f, f1: %f" % (hv, acc, f1_score))
     print ("------------------------------")
     
-##### 混合指标: 
-    # 混合指标, 新指标(new_list)为False才用旧指标(old_list)
-    #   后面2个参数打印用
+##### Mixed indicators:
+    # Mixed indicators, the old indicator (old_list) is used when the new indicator (new_list) is False
+    #    For printing the next 2 parameters
     f1_score = compare_acc_f1(old_list, new_list, y_true, stepC=HP_c, stepV=hv)
-    print ("混合指标3, 指标2为False时用指标1:")
+    print ("Mixed indicator 3, indicator 1 is used when indicator 2 is False:")
     print ("f1: %s" % (np.array(f1_score)))
     print ("------------------------------")
 
 
-##### (1)检查p=0.49~0.501之前的数据，看下是否预测准确，这一段比较难控制: 
+##### (1)Check the data before p = 0.49 ~ 0.501 to see if the prediction is accurate, this section is more difficult to control:
     if FLAGS.test_type == 'mid_range':
-        # 查看具体p组
+        # View specific p groups
         tmp_y = np.array(y_true).reshape((-1,1))
         tmp = np.concatenate([np.array(old_list),tmp_y],axis=1) 
         tmp_list = []
@@ -224,13 +224,13 @@ def main(_):
             if row[0]>=0.49 and row[0]<=0.501:
                 tmp_list.append(row)
         tmp_list = np.array(tmp_list)
-        print ("检查p=0.49~0.501之前的数据，看下是否预测准确，这一段比较难控制:")
-        print ("---------新-------y----\n", tmp_list)
+        print ("Check the data before p = 0.49 ~ 0.501 to see if the prediction is accurate, this section is more difficult to control:")
+        print ("---------new-------y----\n", tmp_list)
         print ("------------------------------")
 
     
-##### (2)更新以上2组系数与基准线后, 再计算最佳的基准线: 
-##### 最佳max组, 计算sum:
+##### (2)After updating the above 2 sets of coefficients and baseline, calculate the best baseline again:
+##### Best max group, calculate sum:
     #   max hv=2.625
     #   max hv=2.4375
     #   max f1=0.8115942
@@ -246,16 +246,16 @@ def main(_):
         max_f1 = max(f1_list)
         max_id = f1_list.index(max_f1)
         max_v  = max_id/80.0+first_v
-        print ("更新以上2组系数与基准线后, 再计算最佳的基准线:")
+        print ("After updating the above two sets of coefficients and baseline, calculate the best baseline:")
         print ("  max_f1: %s  max_v:%s" % (np.array(max_f1), np.array(max_v)))
         print ("------------------------------")
 
 
-##### (3)固定max组系数后, 重新确认最佳系数:
+##### (3)After fixing the max group coefficient, reconfirm the best coefficient:
     #   max f1=0.8155339
     #   max f1=0.74517363
-    # 类型备注: 0(不明显) 1(不明显)
-    # 排除类型: 8, 9, 10, 11, 12, 13, 14, 15
+    # Type remarks: 0 (not obvious) 1 (not obvious)
+    # Exclusion types: 8, 9, 10, 11, 12, 13, 14, 15
     if FLAGS.test_type == 'max_coefficient':
         HP_v = np.array([2.51,   2.43,  2.42, 2.00, 2.50, 0,  2.56, 2.58, 0, 0, 0,  0, 0, 0, 0, 0,  0])
 #        HP_c = np.array([0.82,  0.50, 1.15, 1.00, 0.87, 0,  0.65, 0.94, 0, 0, 0,  0, 0, 0, 0, 0,  0])
@@ -286,14 +286,14 @@ def main(_):
         ci     = (max_id - vi)/rngv
         max_c = ci/60.0+first_c
         max_v = vi/16.0+first_v
-        print ("固定max组系数后, 重新确认最佳系数:")
+        print ("After fixing the max group coefficient, reconfirm the best coefficient:")
         print ("  max_f1: %s  idc:%s,idv:%s,id:%s, c:%.5f,v:%.5f" % (np.array(max_f1), ci, vi, max_id, np.array(max_c), np.array(max_v)))
 
 
-##### 固定mean组系数后, 重新确认最佳系数:
+##### After fixing the mean group coefficient, reconfirm the best coefficient:
     #   max f1=0.8137254
     #   max f1=0.75205857
-    # 改类型2,9作用大
+    # Changing type 2, 9 has great effect
     if FLAGS.test_type == 'mean_coefficient':
 #       HP_o = np.array([0.00,  1.15, 1.00, 1.00, 1.00, 1.00,   1.00, 1.00, 1.00, 1.25, 1.00,   1.00, 1.00, 1.00, 0, 1.00,  1.00])
         HP_o = np.array([0.00,  1.00, 1.15, 1.00, 1.00, 1.00,   1.00, 1.00, 1.00, 1.695, 0.80,   0.80, 0.80, 0.90, 0, 0.80,  0.80])
@@ -310,26 +310,26 @@ def main(_):
         for ci in range(0, rngc, 1):
             c = ci/40.0+first_c
             old_hc = mark_c*1.0+mark0*c
-            # 更新旧指标(old_list), 求总和
+            # Update old indicator (old_list), sum
             old_list = get_old_class(brd_sum,  HP_m = old_hc)
-            # 混合指标, 新指标(new_list)为False才用旧指标(old_list)
-            #   后面2个参数打印用
+            # Mixed indicators, the old indicator (old_list) is used when the new indicator (new_list) is False
+            #    For printing the next 2 parameters
             f1_score = compare_acc_f1(old_list, new_list, y_true, stepC=c, stepV=0)
             f1_list.append(f1_score)
         max_f1 = max(f1_list)
         max_id = f1_list.index(max_f1)
         max_c  = max_id/40.0+first_c
-        print ("固定mean组系数后, 重新确认最佳系数:")
+        print ("After fixing the mean group coefficient, reconfirm the best coefficient:")
         print ("  max_f1: %s  max_hc:%s" % (np.array(max_f1), np.array(max_c)))
         print ("------------------------------")
 
 
-##### 混合指标曲线1:
+##### Mixed indicator curve 1:
     #   max hv=2.625
     #     f1=0.81407034
     #     f1=0.764969
-    # 局部指标--小于0.5添加最大值:
-    # 局部指标--大于0.5去掉最小值:
+    # Local indicators-less than 0.5 add maximum:
+    # Local indicators-greater than 0.5 to remove the minimum value:
     if FLAGS.test_type == 'merge_show':
         partV=[
                 [0.30,0.35,2.81,5.00,0.80],
@@ -340,27 +340,27 @@ def main(_):
                 [0.55,0.60,0.00,1.687,0.20],
                 [0.60,0.65,0.00,1.375,0.20]
               ]
-        # 获取常用类型总分
+        # Get the total score of common types
         part_list = get_part_class(brd_sum, HP_c=HP_c)
-        # 概率合并:
+        # Probability merging:
         tmp_list = part_list_pred(old_list, part_list, partV)
-        # 单独指标, 比混合指标低
+        # Individual indicators, lower than mixed indicators
         acc,f1_score = old_acc_f1(tmp_list, y_true)
-        print("局部指标:")
+        print("Local indicators:")
         print("accuracy: %f, f1: %f" % ( acc, np.array(f1_score)))
         
-        # 查看具体max组
+        # View specific max group
         if 0:
             compareV = tf.cast(tf.not_equal(old_list, part_list), dtype=tf.float32)
             tmp_y = np.array(y_true).reshape((-1,1))
             tmp = np.concatenate([old_list,new_list,part_list,compareV,tmp_y],axis=1) 
-            print ("\n------原---------新-------局部-------对比-------y----\n", tmp)
+            print ("\n------Original --------- New ------- Partial ------ Comparison-------y----\n", tmp)
     
-##### 混合指标曲线2: 
+##### Mixed indicator curve 2:
     #   f1=0.82524
     #   f1=0.75206
     if FLAGS.test_type == 'merge_coefficient':
-        # 获取常用类型总分
+        # Get the total score of common types
         part_list = get_part_class(brd_sum, HP_c=HP_c)
         partB=[
 #               [0.25,0.30,0.00,0.00,0.20],
@@ -374,27 +374,27 @@ def main(_):
 #                [0.65,0.70,0.00,0.000,0.20],
 #                [0.70,0.75,0.00,0.000,0.20],
 #                [0.75,0.80,0.00,1.875,0.20],
-               [1.00,1.00,5.00,5.000,0.20]  #--无用值, 非空项
+               [1.00,1.00,5.00,5.000,0.20]  #--Useless value, non-null
                ]
-        print ("局部指标:")
+        print ("Local index:")
         
-        # 要手动注释掉范围数组(partB)的对应行(与bit对应的范围重复)
+        # To manually comment out the corresponding line of the range array (partB) (duplicates the range corresponding to bit)
         bit = FLAGS.bit    ### bit = 0~9
         
-        #范围
+        #range
         #            0,False     1-2.81      2-2.31        3-2.437      4-1.75      5-1.50        6-1.687      7-1.375     8-False     9-False  
         r_list = [[0.00,0.30], [0.30,0.35], [0.35,0.40], [0.40,0.45], [0.45,0.50], [0.50,0.55], [0.55,0.60], [0.60,0.65],[0.65,0.70], [0.75,0.80]]
-        #小于0.5是0.20, 大于0.5是0.80
+        #Less than 0.5 is 0.20, greater than 0.5 is 0.80
         p_list = [[0.80],      [0.80],      [0.80],      [0.80],      [0.80],      [0.20],      [0.20],      [0.20],     [0.20],      [0.20]    ]
-        #小于0.5是1, 大于0.5是0
+        #Less than 0.5 is 1 and greater than 0.5 is 0
         v_list = [ 2.00,        2.00,        2.00,        2.00,        1.50,        0.00,        0.00,        0.00,       0.00,        0.00      ]
 
-        if 0: ### 测试整体大小
+        if 0: ### Test overall size
             partI_P = [0.80]
             partI_O = [0.00,1.00]
             first_v = 2.4375
             i_len   = 1
-        elif 0: ### 测试每项大小, 大于这个即保留
+        elif 0: ### Test each item size
             #   f1=0.70935
             #   f1=0.72118
             partI_P = [0.80]
@@ -413,16 +413,16 @@ def main(_):
         for vi in range(0, i_len, 1):
             Vm = vi/16.0+first_v
             if partI_P[0]>0.5:
-                partI_V = [Vm, 5.0]    #小于0.5
+                partI_V = [Vm, 5.0]    #Less than 0.5
             else:
-                partI_V = [0.0, Vm]    #大于0.5
+                partI_V = [0.0, Vm]    #Greater than 0.5
             partI = np.concatenate([partI_O, partI_V, partI_P],axis=0) 
             partI = partI.reshape((-1,5))
             partV = np.concatenate([partI, partB],axis=0) 
-            # 概率合并:
+            # Probability merging:
             #print ("partV",partV)
             tmp_list = part_list_pred(old_list, part_list, partV)
-            # 单独指标, 比混合指标低
+            # Individual indicators, lower than mixed indicators
             acc,f1_score = old_acc_f1(tmp_list, y_true)
             print ("   vi: %s  Vm: %s  f1: %s" % (vi, np.array(Vm),  np.array(f1_score)))
             f1_list.append(f1_score)

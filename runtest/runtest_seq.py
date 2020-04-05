@@ -27,15 +27,15 @@ sqlite3_file = os.path.join(dataPath, "sqlite3", "data.db3")
 # cfg
 sys.path.append(rootPath)
 
-# 分块
-from _block import m2n                    # 分块
+# Block
+from _block import m2n                    # Block
 from _token import TokenizerChg
 
 
 
     
 # test-1:
-#   编码-->填充
+#   Encoding-> Fill
 def m2n_test():
 #    m   = [[ 6, 7, 3, 2, 0]]
     m   = [[ 10, 3, 5, 11]]
@@ -49,13 +49,13 @@ def m2n_test():
 
 
 # test-2:
-#   词-->编码-->填充
+#   Word-> Coding-> Fill
 def run_block_parsing(text):
-    # 没必要打印分词过程
+    # No need to print the word segmentation process
     token_chg = TokenizerChg(db_path=sqlite3_file, debug_log=False)
     m1, cnt1, tokens = [], [], []
     for _t in text:
-        # 多了一级括号
+        # One more bracket
         for t in _t:
             tokens1 = token_chg.tokens_mode2(text=t)
 #            tokens1 = token_chg.tokens_mode5(text=t)
@@ -65,12 +65,12 @@ def run_block_parsing(text):
             tokens.append(tokens1)
     m1   = np.array(m1)
     cnt1 = np.array(cnt1)
-    # 打印未设置类型
+    # Type of printing not set
     n1, mi1 = m2n(m1, cnt1, max_space=4, debug=False)
     for i in range(len(text)):
         print("-----------------")
         t = text[i]
-        print ("句子   : %s" % (t))
+        print ("sentence   : %s" % (t))
         print("  tokens1:", tokens[i])
         print("  m1:", m1[i])
         print("  cnt1:", cnt1[i])
@@ -80,7 +80,7 @@ def run_block_parsing(text):
 
 
 def tokens_parsing_main():
-# 测试
+# test
     text = [
 #            ["花呗都用在哪里"], 
 #            ["花呗都能在哪里购物"],
@@ -94,7 +94,7 @@ def tokens_parsing_main():
 
            ]
 
-# 单句测试
+# Single sentence test
     run_block_parsing(text);
 
 
@@ -102,12 +102,12 @@ def main(_):
     print ("  test_type: %s" % (FLAGS.test_type))
     
 # test-1:
-#   编码-->填充隐藏词性
+#   Coding-> Fill in hidden parts of speech
     if FLAGS.test_type == "m2n":
         m2n_test()
 
 # test-2:
-#   词-->编码-->填充隐藏词性
+#   Word-> Code-> Fill hidden part of speech
     if FLAGS.test_type == "tokens_parsing":
         tokens_parsing_main()
 

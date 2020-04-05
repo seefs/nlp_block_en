@@ -58,19 +58,19 @@ class BlockNet(Model):
         output = self.compare_layer([board1, board2])
         
         if BlockNet.save_data:
-            # 保存比较值, 用于外部调参
+            # Save comparison value for external adjustment
             save_debug_data(np.array(output), name='brd_sum')
 
         if self.mean_type=='mean':
             output = self.mean_layer(output)
         elif self.mean_type=='max':
-            # 验证模型, 用不同的指标
-            #   直接混合, 新指标(max)为False才用旧指标(mean)
+            # Validate the model, using different indicators
+            #    Direct mixing, the old indicator (mean) is used when the new indicator (max) is False
             output = self.max_layer(output)
         elif self.mean_type=='max_mean':
-            #   渐进混合, 小中取大, 大中去小
-            #   旧指标(mean)小于0.5时--新指标(max)添加最大值:
-            #   旧指标(mean)大于0.5时--新指标(max)去掉最小值:
+            #   Gradual mixing, small to medium, large to medium, small to medium
+            #   When the old indicator (mean) is less than 0.5-the new indicator (max) adds the maximum value:
+            #   When the old indicator (mean) is greater than 0.5-the new indicator (max) removes the minimum value:
             output = self.max_mean_layer(output)
         else:
             output = self.mean_layer(output)
@@ -82,13 +82,13 @@ def create_model(max_vocab_len, max_seq_len, max_modes_len, h5_file=None, debug=
     """Creates a classification model."""
     assert h5_file is not None
     block_net = BlockNet(max_vocab_len, max_seq_len, max_modes_len, mean=mean)
-    x1   = keras.layers.Input(shape=(max_seq_len,), dtype='int32', name="x1")         #词编号
+    x1   = keras.layers.Input(shape=(max_seq_len,), dtype='int32', name="x1")         # Word number
     x2   = keras.layers.Input(shape=(max_seq_len,), dtype='int32', name="x2")   
-    m1   = keras.layers.Input(shape=(max_seq_len,), dtype='int32', name="m1")         #类型
+    m1   = keras.layers.Input(shape=(max_seq_len,), dtype='int32', name="m1")         # Types of
     m2   = keras.layers.Input(shape=(max_seq_len,), dtype='int32', name="m2")     
-    mi1  = keras.layers.Input(shape=(max_seq_len,), dtype='int32', name="mi1")        #类型在隐藏类型中的id
+    mi1  = keras.layers.Input(shape=(max_seq_len,), dtype='int32', name="mi1")        # Id of type in hidden type
     mi2  = keras.layers.Input(shape=(max_seq_len,), dtype='int32', name="mi2")
-    n1   = keras.layers.Input(shape=(max_modes_len,), dtype='int32', name="n1")       #类型+隐藏类型
+    n1   = keras.layers.Input(shape=(max_modes_len,), dtype='int32', name="n1")       # Type + hidden type
     n2   = keras.layers.Input(shape=(max_modes_len,), dtype='int32', name="n2")
     cnt1 = keras.layers.Input(shape=(1,), dtype='int32', name="cnt1")
     cnt2 = keras.layers.Input(shape=(1,), dtype='int32', name="cnt2")
