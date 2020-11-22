@@ -1,15 +1,16 @@
 # Language model and direction
 
-## 验证语言模型的方向
+* Reference command: 2.3(1), 2.3(5)
+* Validation results:
 
-| 类型 | acc  | f1 |
+| Type | acc  | f1 |
 | :------------ |:---------------:| -----:|
-| 有方向      | 0.737 | 0.7649 |
-| 无方向      | 0.65        |   0.6506 |
-* 参考指令:2.3(1), 2.3(5)
+| Have direction      | 0.737 | 0.7649 |
+| No direction      | 0.65        |   0.6506 |
+
 
 ## 1.file
-* 1.1 Common module
+* 1.1 Common module file
 ```
 _loader.py -------------Preprocess data
 _block.py --------------Preprocess data, classification
@@ -19,13 +20,13 @@ _layer.py --------------model
 _model.py --------------model
 _tool.py ---------------Tools, code conversion and log initialization
 ```
-* 1.2 training
+* 1.2 Training file
 ```
 run_block.py ----------------------------Unstable
 runtest_all\runtest_model_calc.py -------Training
 runtest_all\runtest_model.py ------------Prediction
 ```
-* 1.3 test
+* 1.3 Test file
 ```
 runtest_all\runtest_param.py ------------Parametric analysis
 runtest_all\runtest_merge.py ------------Temporarily useless
@@ -33,6 +34,16 @@ runtest\runtest_load.py -----------------Select the appropriate number of source
 runtest\runtest_seq.py ------------------Check classification code
 runtest\runtest_split.py ----------------Check sentence segmentation
 ```
+* 1.4 Test data
+```
+data\csv\atec_nlp_sim_test.csv ----------All test data (not used)
+data\csv\atec_nlp_sim_train.csv ---------All training data
+data\csv\preprocess\test_*.csv ----------Test data (not used)
+data\csv\preprocess\train_*.csv ---------Training data
+data\model\atec_nlp_calc_1123.h5 --------Model data
+data\sqlite3\data.db3 -------------------Part of speech
+``` 
+
 
 ## 2.Training and evaluation instructions
 
