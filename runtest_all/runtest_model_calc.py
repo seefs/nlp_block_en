@@ -292,7 +292,8 @@ def main(_):
     mRun.show_param()
     
     # train
-    start_train(mRun)
+    if mRun.train_enable:
+        start_train(mRun)
     
 #    save_weights_logger(mRun.model)
 

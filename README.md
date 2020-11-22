@@ -1,30 +1,37 @@
-# Super part of speech
+# Language model and direction
 
+## 验证语言模型的方向
+
+| 类型 | acc  | f1 |
+| :------------ |:---------------:| -----:|
+| 有方向      | 0.737 | 0.7649 |
+| 无方向      | 0.65        |   0.6506 |
+* 参考指令:2.3(1), 2.3(5)
 
 ## 1.file
-* Common module
+* 1.1 Common module
 ```
-_loader.py -------------Preprocessed data
-_block.py --------------Preprocessed data
-_token.py --------------Participle
+_loader.py -------------Preprocess data
+_block.py --------------Preprocess data, classification
+_token.py --------------Preprocess data, participle
 _losses.py
-_layer.py
-_model.py
-_tool.py ---------------Other, coding and log initialization
+_layer.py --------------model
+_model.py --------------model
+_tool.py ---------------Tools, code conversion and log initialization
 ```
-* training
+* 1.2 training
 ```
-run_block.py
-runtest_all\runtest_model_calc.py
-runtest_all\runtest_model.py
+run_block.py ----------------------------Unstable
+runtest_all\runtest_model_calc.py -------Training
+runtest_all\runtest_model.py ------------Prediction
 ```
-* test
+* 1.3 test
 ```
-runtest_all\runtest_param.py
-runtest_all\runtest_merge.py  
-runtest\runtest_load.py  
-runtest\runtest_seq.py  
-runtest\runtest_split.py  
+runtest_all\runtest_param.py ------------Parametric analysis
+runtest_all\runtest_merge.py ------------Temporarily useless
+runtest\runtest_load.py -----------------Select the appropriate number of source data
+runtest\runtest_seq.py ------------------Check classification code
+runtest\runtest_split.py ----------------Check sentence segmentation
 ```
 
 ## 2.Training and evaluation instructions
